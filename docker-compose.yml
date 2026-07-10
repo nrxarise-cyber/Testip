@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aerox_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - aerox_db_data:/app
+    environment:
+      - DEBUG=false
+      - PORT=8000
+      - CORS_ORIGINS=["*"]
+      # Add API keys here if you have them, e.g.:
+      # - IPINFO_TOKEN=your_token
+      # - PROXYCHECK_API_KEY=your_key
+      # - ABUSEIPDB_API_KEY=your_key
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../backend/Dockerfile # Will serve statically or via node in separate build
+      # Since we are using standard production builds:
+      # We can build a fast multi-stage build or run dev server for testing.
+      # Let's provide a direct node dev image or basic nginx setup.
+    image: node:20-alpine
+    container_name: aerox_frontend
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+    command: sh -c "npm install && npm run dev -- --host"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  aerox_db_data:
