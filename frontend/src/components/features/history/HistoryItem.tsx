@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { Globe, Plug, LayoutGrid, Clock, ChevronRight } from 'lucide-react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
-import type { HistoryEntry, CheckType } from '@/types'
+import type { HistoryEntry, CheckType, IPCheckResult, ProxyCheckResult, BulkCheckResult } from '@/types'
 
 interface HistoryItemProps {
   entry: HistoryEntry
@@ -29,14 +29,17 @@ function formatDate(iso: string): string {
 function getResultSummary(entry: HistoryEntry): string {
   const result = entry.result as Record<string, unknown>
   if (entry.check_type === 'ip') {
-    return `${result.country ?? ''} · ${result.isp ?? 'Unknown ISP'}`
+    const ipResult = entry.result as IPCheckResult
+    return `${ipResult.country ?? ''} · ${ipResult.isp ?? 'Unknown ISP'}`
   }
   if (entry.check_type === 'proxy') {
-    const alive = result.is_alive ? 'Live' : 'Dead'
-    return `${alive} · ${result.country ?? 'Unknown'}`
+    const proxyResult = entry.result as ProxyCheckResult
+    const alive = proxyResult.is_alive ? 'Live' : 'Dead'
+    return `${alive} · ${proxyResult.country ?? 'Unknown'}`
   }
   if (entry.check_type === 'bulk') {
-    return `${result.live ?? 0} live / ${result.dead ?? 0} dead`
+    const bulkResult = entry.result as BulkCheckResult
+    return `${bulkResult.live ?? 0} live / ${bulkResult.dead ?? 0} dead`
   }
   return ''
 }
