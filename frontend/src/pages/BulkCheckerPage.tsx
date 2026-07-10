@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { BulkCheckerForm } from '@/components/features/bulk/BulkCheckerForm'
-import { BulkResultList } from '@/components/features/bulk/BulkResultList'
+import { BulkCheckerForm } from '@/components/bulk/BulkCheckerForm'
+import { BulkResultList } from '@/components/bulk/BulkResultList'
 import { ResultSkeleton } from '@/components/ui/Skeleton'
 import { checkBulk } from '@/services/api'
 import type { BulkCheckResult } from '@/types'
