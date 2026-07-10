@@ -27,7 +27,6 @@ function formatDate(iso: string): string {
 }
 
 function getResultSummary(entry: HistoryEntry): string {
-  const result = entry.result as Record<string, unknown>
   if (entry.check_type === 'ip') {
     const ipResult = entry.result as IPCheckResult
     return `${ipResult.country ?? ''} · ${ipResult.isp ?? 'Unknown ISP'}`
