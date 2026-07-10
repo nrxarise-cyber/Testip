@@ -1,4 +1,4 @@
-import { AlertTriangle, Server, Shield, Zap } from 'lucide-react'
+import { Server, Shield, Zap } from 'lucide-react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
 import { CopyButton } from '@/components/ui/CopyButton'
