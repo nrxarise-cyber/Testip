@@ -3,12 +3,12 @@ import { Trash2, Copy, Search } from 'lucide-react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { StatusIndicator } from '@/components/ui/StatusIndicator'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
-import type { HistoryItem } from '@/types'
+import type { HistoryEntry } from '@/types'
 
 interface HistoryListProps {
-  items: HistoryItem[]
+  items: HistoryEntry[]
   loading: boolean
-  onDelete: (id: string) => void
+  onDelete: (id: number) => void
   onCopy: (text: string) => void
 }
 
@@ -66,14 +66,17 @@ export function HistoryList({ items, loading, onDelete, onCopy }: HistoryListPro
 }
 
 interface HistoryItemCardProps {
-  item: HistoryItem
+  item: HistoryEntry
   index: number
-  onDelete: (id: string) => void
+  onDelete: (id: number) => void
   onCopy: (text: string) => void
 }
 
 function HistoryItemCard({ item, index, onDelete, onCopy }: HistoryItemCardProps) {
-  const isLive = item.result?.is_alive || item.result?.is_alive === undefined
+  const isLive = item.result && 'is_alive' in item.result && item.result.is_alive
+  const inputText = item.check_type === 'bulk' && 'results' in item.result 
+    ? `${(item.result as any).total} proxies` 
+    : item.input_data
 
   return (
     <motion.div
@@ -90,7 +93,7 @@ function HistoryItemCard({ item, index, onDelete, onCopy }: HistoryItemCardProps
               {/* Status indicator */}
               <div className="flex-shrink-0">
                 {item.result && 'is_alive' in item.result ? (
-                  <StatusIndicator status={item.result.is_alive ? 'live' : 'dead'} />
+                  <StatusIndicator status={isLive ? 'live' : 'dead'} />
                 ) : (
                   <StatusIndicator status="checking" />
                 )}
@@ -99,9 +102,9 @@ function HistoryItemCard({ item, index, onDelete, onCopy }: HistoryItemCardProps
               {/* Address and type */}
               <div className="min-w-0 flex-1">
                 <code className="text-sm font-mono font-semibold text-text-primary block truncate">
-                  {item.query}
+                  {inputText}
                 </code>
-                <p className="text-xs text-text-muted capitalize mt-1">{item.type} • {formatTime(item.timestamp)}</p>
+                <p className="text-xs text-text-muted capitalize mt-1">{item.check_type} • {formatTime(item.created_at)}</p>
               </div>
             </div>
 
@@ -109,7 +112,7 @@ function HistoryItemCard({ item, index, onDelete, onCopy }: HistoryItemCardProps
             <div className="flex items-center gap-1 flex-shrink-0">
               <motion.button
                 whileTap={{ scale: 0.9 }}
-                onClick={() => onCopy(item.query)}
+                onClick={() => onCopy(item.input_data)}
                 className="p-2 rounded-lg hover:bg-aerox-surface transition-colors"
                 title="Copy to clipboard"
               >
@@ -134,7 +137,7 @@ function HistoryItemCard({ item, index, onDelete, onCopy }: HistoryItemCardProps
               exit={{ opacity: 0, height: 0 }}
               className="pt-3 border-t border-aerox-border/30 grid grid-cols-2 gap-2 text-xs"
             >
-              {item.result.ping_ms !== undefined && (
+              {'ping_ms' in item.result && item.result.ping_ms !== undefined && (
                 <div>
                   <p className="text-text-muted mb-0.5">Latency</p>
                   <p className="font-semibold text-cyan">
@@ -142,7 +145,7 @@ function HistoryItemCard({ item, index, onDelete, onCopy }: HistoryItemCardProps
                   </p>
                 </div>
               )}
-              {item.result.country && (
+              {'country' in item.result && item.result.country && (
                 <div>
                   <p className="text-text-muted mb-0.5">Location</p>
                   <p className="font-semibold text-text-primary">{item.result.country}</p>
@@ -156,7 +159,7 @@ function HistoryItemCard({ item, index, onDelete, onCopy }: HistoryItemCardProps
   )
 }
 
-function formatTime(timestamp: number): string {
+function formatTime(timestamp: string): string {
   const date = new Date(timestamp)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
