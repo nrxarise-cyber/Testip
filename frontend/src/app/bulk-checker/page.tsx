@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { BulkCheckerForm } from '@/components/bulk/BulkCheckerForm'
 import { BulkResultList } from '@/components/bulk/BulkResultList'
 import { PageLayout } from '@/components/layout/PageLayout'
@@ -11,11 +10,9 @@ import type { BulkCheckResult } from '@/types'
 export default function BulkCheckerPage() {
   const [result, setResult] = useState<BulkCheckResult | null>(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
   const handleBulkCheck = async (proxies: string[]) => {
     setLoading(true)
-    setError('')
     setResult(null)
 
     try {
@@ -32,7 +29,16 @@ export default function BulkCheckerPage() {
       const data = await response.json()
       setResult(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setResult({
+        total: proxies.length,
+        live: 0,
+        dead: proxies.length,
+        results: proxies.map(proxy => ({
+          proxy,
+          is_alive: false,
+          error: err instanceof Error ? err.message : 'An error occurred',
+        })),
+      })
     } finally {
       setLoading(false)
     }

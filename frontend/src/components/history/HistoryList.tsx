@@ -1,8 +1,7 @@
 import { motion } from 'framer-motion'
-import { Trash2, Copy, Clock, Search } from 'lucide-react'
+import { Trash2, Copy, Search } from 'lucide-react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { StatusIndicator } from '@/components/ui/StatusIndicator'
-import { PremiumButton } from '@/components/ui/PremiumButton'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import type { HistoryItem } from '@/types'
 
