@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { Search, Loader2 } from 'lucide-react'
 import { PremiumInput } from '@/components/ui/PremiumInput'
 import { PremiumButton } from '@/components/ui/PremiumButton'
@@ -35,10 +34,7 @@ export function ProxyCheckerForm({ onSubmit, loading }: ProxyCheckerFormProps) {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+    <div
       className="px-4 pt-6 pb-4"
     >
       {/* Background glow */}
@@ -82,6 +78,6 @@ export function ProxyCheckerForm({ onSubmit, loading }: ProxyCheckerFormProps) {
           </form>
         </div>
       </GlassCard>
-    </motion.div>
+    </div>
   )
 }

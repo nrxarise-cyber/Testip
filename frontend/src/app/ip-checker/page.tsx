@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { IPCheckerForm } from '@/components/features/ip/IPCheckerForm'
 import { IPResultCard } from '@/components/features/ip/IPResultCard'
 import { PageLayout } from '@/components/layout/PageLayout'
@@ -11,11 +10,9 @@ import type { IPCheckResult } from '@/types'
 export default function IPCheckerPage() {
   const [result, setResult] = useState<IPCheckResult | null>(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
   const handleCheckIP = async (ip: string) => {
     setLoading(true)
-    setError('')
     setResult(null)
 
     try {
@@ -32,7 +29,6 @@ export default function IPCheckerPage() {
       const data = await response.json()
       setResult(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
       setResult({
         ip,
         error: err instanceof Error ? err.message : 'An error occurred',

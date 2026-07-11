@@ -3,7 +3,6 @@ import { MapPin, Building2, Zap, AlertTriangle, Globe, Database } from 'lucide-r
 import { GlassCard } from '@/components/ui/GlassCard'
 import { PremiumBadge } from '@/components/ui/PremiumBadge'
 import { RiskScore } from '@/components/ui/RiskScore'
-import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import type { IPCheckResult } from '@/types'
 
 interface IPResultCardProps {
