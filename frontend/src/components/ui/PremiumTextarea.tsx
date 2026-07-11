@@ -1,7 +1,7 @@
 import { type TextareaHTMLAttributes } from 'react'
 import { motion } from 'framer-motion'
 
-interface PremiumTextareaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'onDrag'> {
+interface PremiumTextareaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart' | 'onAnimationEnd'> {
   error?: string
   helperText?: string
   charLimit?: number
