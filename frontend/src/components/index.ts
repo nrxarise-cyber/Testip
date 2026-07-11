@@ -27,6 +27,3 @@ export { ProxyResultCard } from './features/proxy/ProxyResultCard'
 export { BulkCheckerForm } from './bulk/BulkCheckerForm'
 export { BulkResultList } from './bulk/BulkResultList'
 
-// History Components
-export { HistoryList } from './history/HistoryList'
-export { HistoryPage } from './history/HistoryPage'

@@ -1,7 +1,7 @@
 import { type InputHTMLAttributes } from 'react'
 import { motion } from 'framer-motion'
 
-interface PremiumInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onDrag'> {
+interface PremiumInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart' | 'onAnimationEnd'> {
   icon?: React.ReactNode
   error?: string
   helperText?: string
