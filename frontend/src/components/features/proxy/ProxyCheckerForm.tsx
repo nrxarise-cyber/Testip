@@ -1,106 +1,87 @@
 import { useState } from 'react'
-import { Plug, Search } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Search, Loader2 } from 'lucide-react'
+import { PremiumInput } from '@/components/ui/PremiumInput'
+import { PremiumButton } from '@/components/ui/PremiumButton'
 import { GlassCard } from '@/components/ui/GlassCard'
-import { Button } from '@/components/ui/Button'
+import { GlowEffect } from '@/components/ui/GlowEffect'
 
 interface ProxyCheckerFormProps {
   onSubmit: (proxy: string) => void
   loading: boolean
 }
 
-const EXAMPLE_FORMATS = [
-  '192.168.1.1:8080',
-  'user:pass@192.168.1.1:8080',
-  '192.168.1.1:8080:user:pass',
-]
-
-/**
- * Proxy checker form supporting all three proxy string formats.
- */
 export function ProxyCheckerForm({ onSubmit, loading }: ProxyCheckerFormProps) {
   const [proxy, setProxy] = useState('')
   const [error, setError] = useState('')
 
-  const validate = (value: string): boolean => {
-    const trimmed = value.trim()
-    if (!trimmed) {
-      setError('Please enter a proxy')
-      return false
-    }
-    // At minimum, must contain a colon
-    if (!trimmed.includes(':')) {
-      setError('Invalid proxy format. Expected IP:PORT, USER:PASS@IP:PORT, or IP:PORT:USER:PASS')
-      return false
-    }
-    setError('')
-    return true
+  const validateProxy = (value: string) => {
+    const proxyRegex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}:[0-9]{1,5}$/
+    return proxyRegex.test(value) || value === ''
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (validate(proxy)) {
-      onSubmit(proxy.trim())
+    if (!proxy.trim()) {
+      setError('Please enter a proxy')
+      return
     }
+    if (!validateProxy(proxy)) {
+      setError('Invalid proxy format. Use: 0.0.0.0:0000')
+      return
+    }
+    setError('')
+    onSubmit(proxy)
   }
 
   return (
-    <GlassCard className="p-5">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-xl bg-tg-blue/20 flex items-center justify-center">
-          <Plug className="w-5 h-5 text-tg-blue-light" />
-        </div>
-        <div>
-          <h2 className="text-base font-semibold text-tg-text">Proxy Checker</h2>
-          <p className="text-xs text-tg-muted">Check live / dead status and analytics</p>
-        </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="px-4 pt-6 pb-4"
+    >
+      {/* Background glow */}
+      <div className="absolute inset-0 pointer-events-none">
+        <GlowEffect color="cyan" intensity="low" className="w-80 h-80 -top-40 -right-20" />
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <div>
-          <textarea
-            id="proxy-input"
-            className="input-field font-mono resize-none h-20"
-            placeholder={EXAMPLE_FORMATS[0]}
-            value={proxy}
-            onChange={(e) => {
-              setProxy(e.target.value)
-              if (error) setError('')
-            }}
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="none"
-            spellCheck={false}
-            disabled={loading}
-          />
-          {error && (
-            <p className="text-danger text-xs mt-1.5">⚠ {error}</p>
-          )}
-        </div>
+      <GlassCard variant="lg" className="relative z-10">
+        <div className="p-6 space-y-4">
+          {/* Header */}
+          <div className="space-y-1">
+            <h2 className="text-xl font-bold text-text-primary">Check Proxy</h2>
+            <p className="text-xs text-text-muted">Test proxy status and retrieve detailed analytics</p>
+          </div>
 
-        {/* Format hints */}
-        <div className="space-y-1">
-          <p className="text-[10px] text-tg-muted font-medium">Supported formats:</p>
-          {EXAMPLE_FORMATS.map((fmt) => (
-            <button
-              key={fmt}
-              type="button"
-              onClick={() => setProxy(fmt)}
-              className="block text-[10px] font-mono text-tg-blue-light/70 hover:text-tg-blue-light transition-colors"
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <PremiumInput
+              type="text"
+              placeholder="e.g., 192.168.1.1:8080"
+              value={proxy}
+              onChange={(e) => {
+                setProxy(e.target.value)
+                if (error) setError('')
+              }}
+              error={error}
+              icon={<Search className="w-4 h-4" />}
+              helperText="Format: IP:PORT"
+            />
+
+            {/* Submit button */}
+            <PremiumButton
+              type="submit"
+              fullWidth
+              loading={loading}
+              disabled={loading || !proxy.trim()}
+              icon={loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
             >
-              {fmt}
-            </button>
-          ))}
+              {loading ? 'Testing Proxy...' : 'Test Proxy'}
+            </PremiumButton>
+          </form>
         </div>
-
-        <Button
-          type="submit"
-          loading={loading}
-          fullWidth
-          icon={<Search className="w-4 h-4" />}
-        >
-          {loading ? 'Checking…' : 'Check Proxy'}
-        </Button>
-      </form>
-    </GlassCard>
+      </GlassCard>
+    </motion.div>
   )
 }

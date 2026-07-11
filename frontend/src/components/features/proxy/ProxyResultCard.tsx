@@ -1,183 +1,188 @@
-import { Server, Shield, Zap } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { AlertTriangle, Zap, Globe, Gauge, Shield, Lock } from 'lucide-react'
 import { GlassCard } from '@/components/ui/GlassCard'
-import { Badge } from '@/components/ui/Badge'
-import { CopyButton } from '@/components/ui/CopyButton'
+import { PremiumBadge } from '@/components/ui/PremiumBadge'
+import { StatusIndicator } from '@/components/ui/StatusIndicator'
+import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import type { ProxyCheckResult } from '@/types'
 
 interface ProxyResultCardProps {
   result: ProxyCheckResult
 }
 
-interface RowProps {
-  label: string
-  value?: string | number | boolean | null
-  valueClass?: string
-}
-
-function Row({ label, value, valueClass }: RowProps) {
-  if (value === null || value === undefined) return null
-  const displayValue = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)
-  return (
-    <div className="result-row">
-      <span className="result-label">{label}</span>
-      <span className={`result-value ${valueClass ?? ''}`}>{displayValue}</span>
-    </div>
-  )
-}
-
-function SectionHeader({ icon: Icon, title }: { icon: React.ElementType; title: string }) {
-  return (
-    <div className="flex items-center gap-2 pt-3 pb-1 mt-2 border-t border-tg-border/20">
-      <Icon className="w-3.5 h-3.5 text-tg-blue-light" />
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-tg-muted">{title}</span>
-    </div>
-  )
-}
-
-function ProtocolBadge({ label, supported }: { label: string; supported?: boolean | null }) {
-  if (supported === null || supported === undefined) return null
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border ${
-      supported
-        ? 'bg-success/20 text-success border-success/30'
-        : 'bg-tg-surface text-tg-muted border-tg-border/30'
-    }`}>
-      {label}
-    </span>
-  )
-}
-
-/**
- * Proxy check result card with live/dead status, ping, and all analytics.
- */
 export function ProxyResultCard({ result }: ProxyResultCardProps) {
-  if (result.error && !result.is_alive) {
+  if (result.error) {
     return (
-      <GlassCard className="border-danger/20">
-        <div className="flex items-center gap-3 mb-3">
-          <span className="w-2.5 h-2.5 rounded-full bg-danger pulse-red flex-shrink-0" />
-          <div>
-            <p className="font-mono text-tg-text font-semibold text-sm">{result.proxy}</p>
-            <p className="text-xs text-danger mt-0.5">Dead — Connection failed</p>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="px-4 pb-4"
+      >
+        <GlassCard>
+          <div className="p-6 text-center space-y-3">
+            <AlertTriangle className="w-12 h-12 text-danger mx-auto" />
+            <h3 className="text-lg font-semibold text-danger">Error</h3>
+            <p className="text-sm text-text-muted">{result.error}</p>
           </div>
-          <Badge variant="danger" className="ml-auto">❌ Dead</Badge>
-        </div>
-        {result.error && (
-          <p className="text-xs text-tg-muted bg-tg-surface/40 rounded-lg p-2 font-mono break-all">
-            {result.error}
-          </p>
-        )}
-      </GlassCard>
+        </GlassCard>
+      </motion.div>
     )
   }
 
-  const copyText = JSON.stringify(result, null, 2)
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
+  }
 
   return (
-    <GlassCard>
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-start gap-3 flex-1">
-          <span className={`w-2.5 h-2.5 rounded-full mt-1 flex-shrink-0 ${
-            result.is_alive ? 'bg-success pulse-green' : 'bg-danger pulse-red'
-          }`} />
-          <div className="min-w-0 flex-1">
-            <p className="font-mono text-tg-text font-semibold text-sm break-all leading-tight">
-              {result.proxy}
-            </p>
-            {result.exit_ip && result.exit_ip !== result.host && (
-              <p className="text-xs text-tg-muted mt-0.5">Exit: {result.exit_ip}</p>
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      className="space-y-4 px-4 pb-4"
+    >
+      {/* Main Status Card */}
+      <motion.div variants={itemVariants}>
+        <GlassCard variant="lg">
+          <div className="p-6 space-y-4">
+            {/* Status */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-text-muted mb-2">Status</p>
+                <StatusIndicator status={result.is_alive ? 'live' : 'dead'} />
+              </div>
+              <motion.div
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="text-3xl font-bold text-gradient"
+              >
+                {result.is_alive ? '✓' : '✗'}
+              </motion.div>
+            </div>
+
+            {/* Proxy Info */}
+            <div className="space-y-2">
+              <p className="text-sm text-text-muted">Proxy</p>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-aerox-surface/50 border border-aerox-border">
+                <Zap className="w-5 h-5 text-cyan" />
+                <code className="text-sm font-mono font-semibold text-text-primary">{result.proxy}</code>
+              </div>
+            </div>
+
+            {/* Performance Metrics */}
+            {result.ping_ms !== undefined && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-lg bg-aerox-surface/50 border border-aerox-border space-y-1">
+                  <p className="text-xs text-text-muted flex items-center gap-1">
+                    <Gauge className="w-3 h-3" /> Latency
+                  </p>
+                  <p className="text-lg font-bold text-cyan">
+                    <AnimatedCounter value={result.ping_ms} suffix="ms" decimals={0} />
+                  </p>
+                </div>
+                {result.response_time_ms !== undefined && (
+                  <div className="p-3 rounded-lg bg-aerox-surface/50 border border-aerox-border space-y-1">
+                    <p className="text-xs text-text-muted">Response</p>
+                    <p className="text-lg font-bold text-cyan">
+                      <AnimatedCounter value={result.response_time_ms} suffix="ms" decimals={0} />
+                    </p>
+                  </div>
+                )}
+              </div>
             )}
           </div>
-        </div>
-        <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-          <Badge variant={result.is_alive ? 'success' : 'danger'}>
-            {result.is_alive ? '✅ Live' : '❌ Dead'}
-          </Badge>
-          <CopyButton text={copyText} variant="icon" />
-        </div>
-      </div>
+        </GlassCard>
+      </motion.div>
 
-      {/* Quick stats */}
-      {result.is_alive && (
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="glass-sm p-2 text-center">
-            <p className="text-[10px] text-tg-muted">Ping</p>
-            <p className="text-sm font-bold text-tg-blue-light">
-              {result.ping_ms != null ? `${result.ping_ms}ms` : 'N/A'}
-            </p>
+      {/* Details Card */}
+      <motion.div variants={itemVariants}>
+        <GlassCard>
+          <div className="p-6 space-y-3">
+            <h3 className="font-semibold text-text-primary flex items-center gap-2">
+              <Globe className="w-4 h-4 text-cyan" /> Details
+            </h3>
+            <div className="space-y-2 divide-y divide-aerox-border/30">
+              {result.country && (
+                <DetailRow label="Country" value={result.country} />
+              )}
+              {result.anonymous_level && (
+                <DetailRow label="Anonymity">
+                  <PremiumBadge variant="primary">{result.anonymous_level}</PremiumBadge>
+                </DetailRow>
+              )}
+              {result.isp && <DetailRow label="ISP" value={result.isp} />}
+              {result.asn && <DetailRow label="ASN" value={result.asn} />}
+            </div>
           </div>
-          <div className="glass-sm p-2 text-center">
-            <p className="text-[10px] text-tg-muted">Anonymity</p>
-            <p className="text-sm font-bold text-tg-text capitalize">{result.anonymous_level ?? 'N/A'}</p>
+        </GlassCard>
+      </motion.div>
+
+      {/* Protocol Support */}
+      <motion.div variants={itemVariants}>
+        <GlassCard>
+          <div className="p-6 space-y-3">
+            <h3 className="font-semibold text-text-primary flex items-center gap-2">
+              <Shield className="w-4 h-4 text-cyan" /> Protocol Support
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {result.supports_http && (
+                <PremiumBadge variant="success">HTTP</PremiumBadge>
+              )}
+              {result.supports_https && (
+                <PremiumBadge variant="success">HTTPS</PremiumBadge>
+              )}
+              {result.supports_socks4 && (
+                <PremiumBadge variant="info">SOCKS4</PremiumBadge>
+              )}
+              {result.supports_socks5 && (
+                <PremiumBadge variant="info">SOCKS5</PremiumBadge>
+              )}
+            </div>
           </div>
-          <div className="glass-sm p-2 text-center">
-            <p className="text-[10px] text-tg-muted">Country</p>
-            <p className="text-sm font-bold text-tg-text">{result.country_code ?? 'N/A'}</p>
+        </GlassCard>
+      </motion.div>
+
+      {/* Network Type */}
+      <motion.div variants={itemVariants}>
+        <GlassCard>
+          <div className="p-6 space-y-3">
+            <h3 className="font-semibold text-text-primary flex items-center gap-2">
+              <Lock className="w-4 h-4 text-cyan" /> Network Type
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {result.is_vpn && <PremiumBadge variant="warning">VPN</PremiumBadge>}
+              {result.is_tor && <PremiumBadge variant="danger">TOR</PremiumBadge>}
+              {result.is_datacenter && <PremiumBadge variant="info">Data Center</PremiumBadge>}
+              {result.is_residential && <PremiumBadge variant="success">Residential</PremiumBadge>}
+            </div>
           </div>
-        </div>
-      )}
+        </GlassCard>
+      </motion.div>
+    </motion.div>
+  )
+}
 
-      {/* Protocol support */}
-      {result.is_alive && (
-        <div className="flex gap-1.5 flex-wrap mb-3">
-          <ProtocolBadge label="HTTP" supported={result.supports_http} />
-          <ProtocolBadge label="HTTPS" supported={result.supports_https} />
-          <ProtocolBadge label="SOCKS4" supported={result.supports_socks4} />
-          <ProtocolBadge label="SOCKS5" supported={result.supports_socks5} />
-        </div>
-      )}
+interface DetailRowProps {
+  label: string
+  value?: string
+  children?: React.ReactNode
+}
 
-      {/* Network section */}
-      <SectionHeader icon={Server} title="Network" />
-      <Row label="Exit IP" value={result.exit_ip} />
-      <Row label="Country" value={result.country} />
-      <Row label="ISP" value={result.isp} />
-      <Row label="ASN" value={result.asn} />
-      <Row label="Type" value={result.is_residential ? 'Residential' : result.is_datacenter ? 'Datacenter' : undefined} />
-
-      {/* Performance */}
-      {result.is_alive && (
-        <>
-          <SectionHeader icon={Zap} title="Performance" />
-          <Row label="Ping" value={result.ping_ms != null ? `${result.ping_ms} ms` : undefined} />
-          <Row label="Response Time" value={result.response_time_ms != null ? `${result.response_time_ms} ms` : undefined} />
-        </>
-      )}
-
-      {/* Security */}
-      <SectionHeader icon={Shield} title="Security" />
-      <Row label="VPN" value={result.is_vpn} valueClass={result.is_vpn ? 'text-warning' : 'text-success'} />
-      <Row label="TOR" value={result.is_tor} valueClass={result.is_tor ? 'text-danger' : 'text-success'} />
-      {result.proxy_score !== undefined && result.proxy_score !== null && (
-        <div className="result-row">
-          <span className="result-label">Proxy Score</span>
-          <Badge variant={result.proxy_score > 60 ? 'danger' : result.proxy_score > 30 ? 'warning' : 'success'}>
-            {result.proxy_score}/100
-          </Badge>
-        </div>
-      )}
-      {result.fraud_score !== undefined && result.fraud_score !== null && (
-        <div className="result-row">
-          <span className="result-label">Fraud Score</span>
-          <Badge variant={result.fraud_score > 60 ? 'danger' : result.fraud_score > 30 ? 'warning' : 'success'}>
-            {result.fraud_score}/100
-          </Badge>
-        </div>
-      )}
-      {result.blacklist_status !== null && result.blacklist_status !== undefined && (
-        <div className="result-row">
-          <span className="result-label">Blacklist</span>
-          <Badge variant={result.blacklist_status ? 'danger' : 'success'}>
-            {result.blacklist_status ? '⛔ Listed' : '✅ Clean'}
-          </Badge>
-        </div>
-      )}
-
-      {/* Copy */}
-      <div className="mt-4 pt-3 border-t border-tg-border/20">
-        <CopyButton text={copyText} label="Copy Full Result" className="w-full justify-center" />
-      </div>
-    </GlassCard>
+function DetailRow({ label, value, children }: DetailRowProps) {
+  return (
+    <div className="py-3 flex items-center justify-between">
+      <span className="text-sm text-text-muted">{label}</span>
+      {children || <span className="text-sm font-semibold text-text-primary">{value}</span>}
+    </div>
   )
 }
