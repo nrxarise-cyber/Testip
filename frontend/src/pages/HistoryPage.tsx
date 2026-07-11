@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { HistoryItem } from '@/components/features/history/HistoryItem'
+import { HistoryItem as HistoryItemComponent } from '@/components/features/history/HistoryItem'
 import { IPResultCard } from '@/components/features/ip/IPResultCard'
 import { ProxyResultCard } from '@/components/features/proxy/ProxyResultCard'
 import { BulkResultList } from '@/components/features/bulk/BulkResultList'
@@ -139,7 +139,7 @@ export function HistoryPage() {
       ) : (
         <div className="space-y-3">
           {entries.map((entry, index) => (
-            <HistoryItem
+            <HistoryItemComponent
               key={entry.id}
               entry={entry}
               index={index}
