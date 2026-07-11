@@ -1,102 +1,193 @@
 import { motion } from 'framer-motion'
+import { CheckCircle2, XCircle, AlertTriangle, TrendingUp, AlertCircle } from 'lucide-react'
 import { GlassCard } from '@/components/ui/GlassCard'
-import { Badge } from '@/components/ui/Badge'
-import { CopyButton } from '@/components/ui/CopyButton'
+import { StatusIndicator } from '@/components/ui/StatusIndicator'
+import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
+import { PremiumBadge } from '@/components/ui/PremiumBadge'
 import type { BulkCheckResult, ProxyCheckResult } from '@/types'
 
 interface BulkResultListProps {
   result: BulkCheckResult
 }
 
-function BulkProxyRow({ item, index }: { item: ProxyCheckResult; index: number }) {
+export function BulkResultList({ result }: BulkResultListProps) {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05,
+      },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    show: { opacity: 1, x: 0 },
+  }
+
+  const successRate = ((result.live / result.total) * 100).toFixed(1)
+
   return (
     <motion.div
-      initial={{ opacity: 0, x: -12 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.04, duration: 0.2 }}
-      className="glass-sm p-3 flex items-center gap-3"
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      className="space-y-4 px-4 pb-4"
     >
-      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
-        item.is_alive ? 'bg-success pulse-green' : 'bg-danger'
-      }`} />
-      <div className="flex-1 min-w-0">
-        <p className="font-mono text-xs text-tg-text truncate">{item.proxy}</p>
-        {item.is_alive && item.country && (
-          <p className="text-[10px] text-tg-muted mt-0.5">{item.country} · {item.isp ?? 'Unknown ISP'}</p>
-        )}
-      </div>
-      <div className="flex items-center gap-2 flex-shrink-0">
-        {item.is_alive && item.ping_ms != null && (
-          <span className="text-[10px] font-mono text-tg-muted">{item.ping_ms}ms</span>
-        )}
-        {item.is_alive && item.proxy_score != null && (
-          <span className={`text-[10px] font-bold ${
-            item.proxy_score > 60 ? 'text-danger' : item.proxy_score > 30 ? 'text-warning' : 'text-success'
-          }`}>
-            {item.proxy_score}
-          </span>
-        )}
-        <Badge variant={item.is_alive ? 'success' : 'danger'}>
-          {item.is_alive ? '✅' : '❌'}
-        </Badge>
-      </div>
+      {/* Summary Cards */}
+      <motion.div
+        variants={itemVariants}
+        className="grid grid-cols-3 gap-2"
+      >
+        {/* Total */}
+        <GlassCard>
+          <div className="p-4 space-y-2 text-center">
+            <div className="w-8 h-8 rounded-lg bg-cyan/20 flex items-center justify-center mx-auto">
+              <AlertCircle className="w-4 h-4 text-cyan" />
+            </div>
+            <div>
+              <p className="text-xs text-text-muted">Total</p>
+              <p className="text-lg font-bold text-text-primary">
+                <AnimatedCounter value={result.total} />
+              </p>
+            </div>
+          </div>
+        </GlassCard>
+
+        {/* Live */}
+        <GlassCard>
+          <div className="p-4 space-y-2 text-center">
+            <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-4 h-4 text-success" />
+            </div>
+            <div>
+              <p className="text-xs text-text-muted">Live</p>
+              <p className="text-lg font-bold text-success">
+                <AnimatedCounter value={result.live} />
+              </p>
+            </div>
+          </div>
+        </GlassCard>
+
+        {/* Dead */}
+        <GlassCard>
+          <div className="p-4 space-y-2 text-center">
+            <div className="w-8 h-8 rounded-lg bg-danger/20 flex items-center justify-center mx-auto">
+              <XCircle className="w-4 h-4 text-danger" />
+            </div>
+            <div>
+              <p className="text-xs text-text-muted">Dead</p>
+              <p className="text-lg font-bold text-danger">
+                <AnimatedCounter value={result.dead} />
+              </p>
+            </div>
+          </div>
+        </GlassCard>
+      </motion.div>
+
+      {/* Success Rate */}
+      <motion.div variants={itemVariants}>
+        <GlassCard>
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-cyan" />
+                <span className="text-sm font-semibold text-text-primary">Success Rate</span>
+              </div>
+              <span className="text-lg font-bold text-cyan">{successRate}%</span>
+            </div>
+            {/* Progress bar */}
+            <div className="w-full h-2 rounded-full bg-aerox-surface overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${successRate}%` }}
+                transition={{ duration: 1.5, ease: 'easeOut' }}
+                className="h-full bg-gradient-to-r from-success to-success-dark"
+              />
+            </div>
+          </div>
+        </GlassCard>
+      </motion.div>
+
+      {/* Results List */}
+      <motion.div variants={itemVariants}>
+        <div className="space-y-2">
+          {result.results.map((proxy, index) => (
+            <ProxyResultItem key={`${proxy.proxy}-${index}`} proxy={proxy} index={index} />
+          ))}
+        </div>
+      </motion.div>
     </motion.div>
   )
 }
 
-/**
- * Bulk check results list with summary stats and per-proxy rows.
- */
-export function BulkResultList({ result }: BulkResultListProps) {
-  const copyText = result.results.map((r) =>
-    `${r.proxy} | ${r.is_alive ? 'LIVE' : 'DEAD'} | ${r.ping_ms != null ? r.ping_ms + 'ms' : 'N/A'} | ${r.country ?? 'Unknown'} | Score: ${r.proxy_score ?? 'N/A'}`
-  ).join('\n')
+interface ProxyResultItemProps {
+  proxy: ProxyCheckResult
+  index: number
+}
 
-  const livePercent = result.total > 0 ? Math.round((result.live / result.total) * 100) : 0
-
+function ProxyResultItem({ proxy, index }: ProxyResultItemProps) {
   return (
-    <div className="space-y-3">
-      {/* Summary card */}
-      <GlassCard className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-tg-text">Results Summary</h3>
-          <CopyButton text={copyText} variant="icon" />
-        </div>
-        <div className="grid grid-cols-3 gap-3 mb-3">
-          <div className="glass-sm p-2.5 text-center rounded-xl">
-            <p className="text-[10px] text-tg-muted">Total</p>
-            <p className="text-xl font-bold text-tg-text">{result.total}</p>
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.05 }}
+    >
+      <GlassCard className={`p-4 ${proxy.is_alive ? 'border-success/30' : 'border-danger/30'}`}>
+        <div className="space-y-3">
+          {/* Proxy address and status */}
+          <div className="flex items-center justify-between">
+            <code className="text-sm font-mono font-semibold text-text-primary">{proxy.proxy}</code>
+            <StatusIndicator status={proxy.is_alive ? 'live' : 'dead'} />
           </div>
-          <div className="glass-sm p-2.5 text-center rounded-xl">
-            <p className="text-[10px] text-tg-muted">Live</p>
-            <p className="text-xl font-bold text-success">{result.live}</p>
+
+          {/* Details grid */}
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            {proxy.ping_ms !== undefined && (
+              <div>
+                <p className="text-text-muted mb-1">Latency</p>
+                <p className="font-semibold text-text-primary">
+                  <AnimatedCounter value={proxy.ping_ms} suffix="ms" decimals={0} />
+                </p>
+              </div>
+            )}
+            {proxy.country && (
+              <div>
+                <p className="text-text-muted mb-1">Location</p>
+                <p className="font-semibold text-text-primary">{proxy.country}</p>
+              </div>
+            )}
           </div>
-          <div className="glass-sm p-2.5 text-center rounded-xl">
-            <p className="text-[10px] text-tg-muted">Dead</p>
-            <p className="text-xl font-bold text-danger">{result.dead}</p>
-          </div>
+
+          {/* Badges */}
+          {(proxy.anonymous_level || proxy.supports_http || proxy.supports_https) && (
+            <div className="flex flex-wrap gap-1">
+              {proxy.anonymous_level && (
+                <PremiumBadge variant="primary">{proxy.anonymous_level}</PremiumBadge>
+              )}
+              {proxy.supports_https && (
+                <PremiumBadge variant="success">HTTPS</PremiumBadge>
+              )}
+              {proxy.supports_socks5 && (
+                <PremiumBadge variant="info">SOCKS5</PremiumBadge>
+              )}
+            </div>
+          )}
+
+          {/* Error message */}
+          {proxy.error && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-start gap-2 p-2 rounded-md bg-danger/10 border border-danger/20"
+            >
+              <AlertTriangle className="w-4 h-4 text-danger flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-danger">{proxy.error}</p>
+            </motion.div>
+          )}
         </div>
-        {/* Progress bar */}
-        <div className="relative h-1.5 bg-tg-border/30 rounded-full overflow-hidden">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${livePercent}%` }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="absolute inset-y-0 left-0 bg-gradient-to-r from-success to-tg-blue-light rounded-full"
-          />
-        </div>
-        <p className="text-[10px] text-tg-muted text-right mt-1">{livePercent}% live</p>
       </GlassCard>
-
-      {/* Individual rows */}
-      <div className="space-y-2">
-        {result.results.map((item, i) => (
-          <BulkProxyRow key={item.proxy + i} item={item} index={i} />
-        ))}
-      </div>
-
-      {/* Copy all */}
-      <CopyButton text={copyText} label="Copy All Results" className="w-full justify-center" />
-    </div>
+    </motion.div>
   )
 }
