@@ -1,16 +1,15 @@
 import { motion } from 'framer-motion'
-import { Trash2, RotateCcw } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { GlassCard } from '@/components/ui/GlassCard'
-import { PremiumButton } from '@/components/ui/PremiumButton'
 import { PremiumHeader } from '@/components/layout/PremiumHeader'
 import { PremiumSection } from '@/components/layout/PremiumSection'
 import { HistoryList } from '@/components/history/HistoryList'
-import type { HistoryItem } from '@/types'
+import type { HistoryEntry } from '@/types'
 
 interface HistoryPageProps {
-  items: HistoryItem[]
+  items: HistoryEntry[]
   loading: boolean
-  onDelete: (id: string) => void
+  onDelete: (id: number) => void
   onClearAll: () => void
   onCopy: (text: string) => void
 }
